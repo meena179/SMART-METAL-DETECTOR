@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Metal Detector Dashboard</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Inter, "Segoe UI", Arial, sans-serif;
+      background: #07111f;
+      color: #e5edf9;
+    }
+
+    .sidebar {
+      background: linear-gradient(180deg, #0d1b30, #091426);
+      border-right: 1px solid #20334f;
+    }
+
+    .topbar {
+      background: rgba(12, 26, 46, 0.95);
+      border-bottom: 1px solid #20334f;
+    }
+
+    .dashboard-card {
+      background: linear-gradient(145deg, #10213a, #0c192c);
+      border: 1px solid #263b5b;
+      border-radius: 16px;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+
+    .dashboard-card:hover {
+      transform: translateY(-3px);
+      border-color: #45668f;
+    }
+
+    .card-blue {
+      border-left: 4px solid #38bdf8;
+    }
+
+    .card-green {
+      border-left: 4px solid #34d399;
+    }
+
+    .card-orange {
+      border-left: 4px solid #fbbf24;
+    }
+
+    .card-purple {
+      border-left: 4px solid #a78bfa;
+    }
+
+    .icon-circle {
+      width: 52px;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+    }
+
+    .table-row {
+      border-bottom: 1px solid #20334f;
+    }
+
+    .table-row:hover {
+      background: #14253d;
+    }
+
+    .status-badge {
+      padding: 5px 11px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .risk-low {
+      color: #6ee7b7;
+      background: rgba(16, 185, 129, 0.17);
+    }
+
+    .risk-medium {
+      color: #fcd34d;
+      background: rgba(245, 158, 11, 0.17);
+    }
+
+    .risk-high {
+      color: #fca5a5;
+      background: rgba(239, 68, 68, 0.17);
+    }
+
+    .progress-track {
+      height: 9px;
+      border-radius: 20px;
+      background: #263c5e;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: 20px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      border-radius: 10px;
+      color: #a9bad3;
+      cursor: pointer;
+    }
+
+    .nav-item.active {
+      background: #19345b;
+      color: #67d7ff;
+    }
+
+    .nav-item:hover {
+      background: #172b47;
+    }
+
+    .offline-dot {
+      width: 9px;
+      height: 9px;
+      background: #f59e0b;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    table {
+      min-width: 700px;
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th,
+    td {
+      padding: 15px 14px;
+      text-align: left;
+    }
+
+    th {
+      color: #9fb4d2;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      background: #14243c;
+    }
+
+    @media (max-width: 767px) {
+      .sidebar {
+        display: none;
+      }
+
+      .main-content {
+        padding: 18px !important;
+      }
+
+      .topbar {
+        padding: 16px !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="flex min-h-screen">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar w-64 min-h-screen p-5 flex-shrink-0 flex-col hidden md:flex">
+
+      <div class="flex items-center gap-3 mb-10 px-2">
+        <div class="bg-sky-400/10 p-3 rounded-xl">
+          <i data-lucide="shield-check" class="text-sky-400 w-7 h-7"></i>
+        </div>
+        <div>
+          <h1 class="font-bold text-lg text-white leading-tight">
+            Smart Metal
+          </h1>
+          <p class="text-sky-400 text-sm">Detector</p>
+        </div>
+      </div>
+
+      <p class="text-xs uppercase tracking-widest text-slate-500 px-3 mb-3">
+        Main Menu
+      </p>
+
+      <nav class="space-y-2">
+        <a href="#dashboard" class="nav-item active">
+          <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+          Dashboard
+        </a>
+
+        <a href="#history" class="nav-item">
+          <i data-lucide="history" class="w-5 h-5"></i>
+          Detection History
+        </a>
+
+        <a href="#system-info" class="nav-item">
+          <i data-lucide="info" class="w-5 h-5"></i>
+          System Information
+        </a>
+      </nav>
+
+      <div class="mt-auto">
+        <div class="rounded-xl p-4 bg-slate-800/60 border border-slate-700">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="offline-dot"></span>
+            <span class="text-sm font-semibold text-amber-300">
+              Device Offline
+            </span>
+          </div>
+        </div>
+
+        <p class="text-xs text-slate-500 mt-5 px-1">
+          Capstone Project<br>
+          ESP32 · Deep Learning · .NET
+        </p>
+      </div>
+    </aside>
+
+    <!-- MAIN AREA -->
+    <div class="flex-1 min-w-0">
+
+      <!-- HEADER -->
+      <header class="topbar px-6 md:px-9 py-5 flex flex-wrap items-center justify-between gap-4">
+
+        <div>
+          <h2 class="text-xl md:text-2xl font-bold text-white">
+            Smart Metal Detector
+          </h2>
+          <p class="text-sm text-slate-400 mt-1">
+            Detect · Analyze · Stay Safe
+          </p>
+        </div>
+
+      </header>
+
+      <!-- DASHBOARD -->
+      <main id="dashboard" class="main-content p-6 md:p-9">
+
+        <!-- WELCOME -->
+        <div class="mb-8">
+          <p class="text-sky-400 text-sm font-semibold mb-2">
+            PROJECT OVERVIEW
+          </p>
+          <h2 class="text-2xl md:text-3xl font-bold text-white">
+            Dashboard Overview
+          </h2>
+          <p class="text-slate-400 mt-2">
+            Review sample metal detection readings and risk indicators.
+          </p>
+        </div>
+
+
+
+        <!-- FOUR FEATURE CARDS -->
+        <section class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mb-9">
+
+          <!-- CARD 1: DETECTION -->
+          <article class="dashboard-card card-blue p-5">
+            <div class="flex items-center justify-between mb-5">
+              <div class="icon-circle bg-sky-400/15">
+                <i data-lucide="magnet" class="w-6 h-6 text-sky-400"></i>
+              </div>
+            </div>
+
+            <p class="text-sm text-slate-400 font-medium">
+              Metal Detection Status
+            </p>
+            <h3 class="text-2xl font-bold text-sky-400 mt-3">
+              Metal Detected
+            </h3>
+            <p class="text-xs text-slate-500 mt-4">
+              Illustrative sample result
+            </p>
+          </article>
+
+          <!-- CARD 2: SIGNAL -->
+          <article class="dashboard-card card-green p-5">
+            <div class="flex items-center justify-between mb-5">
+              <div class="icon-circle bg-emerald-400/15">
+                <i data-lucide="signal" class="w-6 h-6 text-emerald-400"></i>
+              </div>
+            </div>
+
+            <p class="text-sm text-slate-400 font-medium">
+              Signal Strength
+            </p>
+            <h3 class="text-3xl font-bold text-emerald-400 mt-3">
+              78%
+            </h3>
+
+            <div class="progress-track mt-4">
+              <div class="progress-fill bg-emerald-400" style="width: 78%"></div>
+            </div>
+
+            <p class="text-xs text-slate-500 mt-3">
+              Illustrative signal value
+            </p>
+          </article>
+
+          <!-- CARD 3: RISK -->
+          <article class="dashboard-card card-orange p-5">
+            <div class="flex items-center justify-between mb-5">
+              <div class="icon-circle bg-amber-400/15">
+                <i data-lucide="shield-alert" class="w-6 h-6 text-amber-400"></i>
+              </div>
+            </div>
+
+            <p class="text-sm text-slate-400 font-medium">
+              Risk Level
+            </p>
+            <h3 class="text-3xl font-bold text-amber-400 mt-3">
+              Medium
+            </h3>
+
+            <div class="flex gap-1.5 mt-4">
+              <div class="h-2 rounded-full bg-emerald-400 flex-1"></div>
+              <div class="h-2 rounded-full bg-amber-400 flex-1"></div>
+              <div class="h-2 rounded-full bg-slate-700 flex-1"></div>
+            </div>
+
+            <p class="text-xs text-slate-500 mt-3">
+              Sample risk classification
+            </p>
+          </article>
+
+          <!-- CARD 4: HISTORY -->
+          <article class="dashboard-card card-purple p-5">
+            <div class="flex items-center justify-between mb-5">
+              <div class="icon-circle bg-violet-400/15">
+                <i data-lucide="history" class="w-6 h-6 text-violet-400"></i>
+              </div>
+            </div>
+
+            <p class="text-sm text-slate-400 font-medium">
+              History Records
+            </p>
+            <h3 class="text-3xl font-bold text-violet-400 mt-3">
+              2
+            </h3>
+          </article>
+
+        </section>
+
+        <!-- HISTORY TABLE -->
+        <section id="history" class="dashboard-card overflow-hidden">
+
+          <div class="p-5 md:p-6 flex flex-wrap justify-between items-center gap-4 border-b border-slate-700/70">
+            <div class="flex items-center gap-3">
+              <div class="icon-circle bg-violet-400/10 w-11 h-11">
+                <i data-lucide="clipboard-list" class="w-5 h-5 text-violet-400"></i>
+              </div>
+              <div>
+                <h3 class="text-lg font-bold text-white">
+                  Detection History
+                </h3>
+                <p class="text-sm text-slate-400 mt-1">
+                  Eight illustrative sample records
+                </p>
+              </div>
+            </div>
+
+            <span class="status-badge bg-violet-400/10 text-violet-300">
+              2 Records
+            </span>
+          </div>
+
+          <div class="table-wrap p-3 md:p-5">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Date & Time</th>
+                  <th>Signal Strength</th>
+                  <th>Risk Level</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                <tr class="table-row">
+                  <td class="text-slate-400">01</td>
+                  <td class="text-slate-300 whitespace-nowrap">2026-10-22 09:15</td>
+                  <td>
+                    <div class="flex items-center gap-3">
+                      <span>78%</span>
+                      <div class="progress-track w-16">
+                        <div class="progress-fill bg-sky-400" style="width:78%"></div>
+                      </div>
+                    </div>
+                  </td>
+                  <td><span class="status-badge risk-low">Low</span></td>
+                  <td><span class="text-emerald-300 text-xs">Sample</span></td>
+                </tr>
+                <tr class="table-row">
+                  <td class="text-slate-400">02</td>
+                  <td class="text-slate-300 whitespace-nowrap">2026-10-22 08:40</td>
+                  <td>
+                    <div class="flex items-center gap-3">
+                      <span>83%</span>
+                      <div class="progress-track w-16">
+                        <div class="progress-fill bg-sky-400" style="width:83%"></div>
+                      </div>
+                    </div>
+                  </td>
+                  <td><span class="status-badge risk-medium">Medium</span></td>
+                  <td><span class="text-emerald-300 text-xs">Sample</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="px-5 py-4 border-t border-slate-700/70 flex flex-wrap justify-between gap-2">
+            <p class="text-xs text-slate-500">
+              Showing 8 of 8 sample records
+            </p>
+          </div>
+        </section>
+
+        <!-- SYSTEM INFORMATION -->
+        <section id="system-info" class="mt-7 dashboard-card p-5 md:p-6">
+          <div class="flex items-center gap-3 mb-5">
+            <i data-lucide="cpu" class="w-6 h-6 text-sky-400"></i>
+            <h3 class="text-lg font-bold text-white">System Information</h3>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+
+            <div>
+              <p class="text-xs text-slate-500 mb-1">Microcontroller</p>
+              <p class="text-sm text-slate-200 font-medium">ESP32 Dev Module</p>
+            </div>
+
+            <div>
+              <p class="text-xs text-slate-500 mb-1">Display</p>
+              <p class="text-sm text-slate-200 font-medium">OLED SSD1306</p>
+            </div>
+
+            <div>
+              <p class="text-xs text-slate-500 mb-1">Connection</p>
+              <p class="text-sm text-amber-300 font-medium">Not Connected</p>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- FOOTER -->
+        <footer class="text-center text-xs text-slate-600 mt-8 pb-3">
+          Smart Metal Detector · Dashboard Prototype · Simulation Only
+        </footer>
+
+      </main>
+    </div>
+  </div>
+
+  <script>
+    // Icons only. No ESP32, API, or backend data fetching.
+    if (window.lucide) {
+      lucide.createIcons();
+    }
+  </script>
+
+</body>
+
+</html>
